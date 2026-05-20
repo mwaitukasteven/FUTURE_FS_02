@@ -1,0 +1,394 @@
+<%
+    title = 'Dashboard - Mini CRM';
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            background: white;
+            min-height: 100vh;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .logo {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar .logo h4 {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        .sidebar .nav-link {
+            color: #4b5563;
+            padding: 12px 20px;
+            margin: 4px 15px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .sidebar .nav-link:hover {
+            background: #f3f4f6;
+            color: var(--primary);
+        }
+        
+        .sidebar .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+        }
+        
+        .sidebar .user-info {
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        /* Stats Cards */
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        /* Badge Styles */
+        .badge-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .badge-new { background: #fef3c7; color: #d97706; }
+        .badge-contacted { background: #dbeafe; color: #2563eb; }
+        .badge-converted { background: #d1fae5; color: #059669; }
+        .badge-lost { background: #fee2e2; color: #dc2626; }
+        
+        /* Button Styles */
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        /* Table Styles */
+        .table-hover tbody tr:hover {
+            background: #f9fafb;
+            cursor: pointer;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 15px;
+        }
+        
+        .card-header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 15px 20px;
+            border-radius: 15px 15px 0 0 !important;
+        }
+        
+        /* Top Nav */
+        .top-nav {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 1050;
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .menu-toggle {
+                display: block;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .menu-toggle {
+                display: none;
+            }
+        }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <div class="logo">
+        <h4>📊 Mini CRM</h4>
+        <small class="text-muted">Lead Management</small>
+    </div>
+    
+    <nav class="nav flex-column">
+        <a href="/dashboard" class="nav-link active">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a href="/dashboard/leads" class="nav-link">
+            <i class="bi bi-people"></i> All Leads
+        </a>
+    </nav>
+    
+    <div class="user-info">
+        <div class="text-center">
+            <i class="bi bi-person-circle fs-1 text-muted"></i>
+            <p class="mb-1 mt-2"><strong><%= user.name %></strong></p>
+            <small class="text-muted"><%= user.email %></small>
+            <hr>
+            <a href="/logout" class="btn btn-danger btn-sm w-100">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+    <!-- Mobile Menu Toggle -->
+    <button class="btn btn-primary menu-toggle mb-3" onclick="toggleSidebar()" style="position: fixed; top: 10px; left: 10px; z-index: 1100;">
+        <i class="bi bi-list"></i> Menu
+    </button>
+    
+    <!-- Top Bar -->
+    <div class="top-nav d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="mb-0">Dashboard</h2>
+            <small class="text-muted">Welcome back, <%= user.name %></small>
+        </div>
+        <div>
+            <span class="badge bg-secondary">
+                <i class="bi bi-calendar"></i> <%= new Date().toLocaleDateString() %>
+            </span>
+        </div>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Total Leads</h6>
+                        <h2 class="mb-0"><%= stats.total %></h2>
+                    </div>
+                    <i class="bi bi-people fs-1" style="color: var(--primary); opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">New Leads</h6>
+                        <h2 class="mb-0" style="color: var(--warning);"><%= stats.new %></h2>
+                    </div>
+                    <i class="bi bi-star fs-1" style="color: var(--warning); opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Contacted</h6>
+                        <h2 class="mb-0" style="color: var(--info);"><%= stats.contacted %></h2>
+                    </div>
+                    <i class="bi bi-telephone fs-1" style="color: var(--info); opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-1">Converted</h6>
+                        <h2 class="mb-0" style="color: var(--success);"><%= stats.converted %></h2>
+                    </div>
+                    <i class="bi bi-trophy fs-1" style="color: var(--success); opacity: 0.5;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Leads -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-clock-history"></i> Recent Leads
+            </h5>
+            <a href="/dashboard/leads" class="btn btn-sm btn-primary">
+                View All <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <div class="card-body">
+            <div id="recentLeads">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('show');
+    }
+    
+    async function loadRecentLeads() {
+        try {
+            const response = await fetch('/api/leads');
+            const leads = await response.json();
+            const recentLeads = leads.slice(0, 5);
+            
+            if (recentLeads.length === 0) {
+                document.getElementById('recentLeads').innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-inbox fs-1 text-muted"></i>
+                        <p class="text-muted mt-2">No leads yet</p>
+                        <a href="/test-form" class="btn btn-sm btn-primary">Submit Test Lead</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="table-responsive"><table class="table table-hover"><thead><tr>';
+            html += '<th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th>Date</th><th></th>';
+            html += '</tr></thead><tbody>';
+            
+            recentLeads.forEach(lead => {
+                let statusClass = 'badge-new';
+                if (lead.status === 'contacted') statusClass = 'badge-contacted';
+                if (lead.status === 'converted') statusClass = 'badge-converted';
+                if (lead.status === 'lost') statusClass = 'badge-lost';
+                
+                const date = new Date(lead.createdAt);
+                const formattedDate = date.toLocaleDateString();
+                
+                html += `<tr onclick="window.location='/dashboard/lead/${lead._id}'">`;
+                html += `<td><strong>${escapeHtml(lead.name)}</strong></td>`;
+                html += `<td>${escapeHtml(lead.email)}</td>`;
+                html += `<td>${escapeHtml(lead.phone)}</td>`;
+                html += `<td><span class="badge-status ${statusClass}">${lead.status}</span></td>`;
+                html += `<td>${formattedDate}</td>`;
+                html += `<td><i class="bi bi-chevron-right"></i></td>`;
+                html += `</tr>`;
+            });
+            
+            html += '</tbody>}</div>';
+            document.getElementById('recentLeads').innerHTML = html;
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('recentLeads').innerHTML = '<div class="alert alert-danger">Error loading leads. Please refresh the page.</div>';
+        }
+    }
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.querySelector('.menu-toggle');
+        
+        if (window.innerWidth <= 768) {
+            if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                sidebar.classList.remove('show');
+            }
+        }
+    });
+    
+    loadRecentLeads();
+    setInterval(loadRecentLeads, 30000);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Admin - Mini CRM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+        }
+        
+        .register-card {
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border: none;
+            animation: fadeInUp 0.5s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .register-card .card-body {
+            padding: 40px;
+        }
+        
+        .btn-register {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-register:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .password-strength {
+            height: 4px;
+            margin-top: 5px;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        
+        .strength-weak { width: 33%; background: #ef4444; }
+        .strength-medium { width: 66%; background: #f59e0b; }
+        .strength-strong { width: 100%; background: #10b981; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card register-card">
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-shield-lock fs-1 text-primary"></i>
+                            <h3 class="mt-2">Create Admin Account</h3>
+                            <p class="text-muted">First time setup - Create your administrator account</p>
+                        </div>
+                        
+                        <% if (error) { %>
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-triangle"></i> <%= error %>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        <% } %>
+                        
+                        <% if (success) { %>
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <i class="bi bi-check-circle"></i> <%= success %>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="/login" class="btn btn-primary">
+                                    <i class="bi bi-box-arrow-in-right"></i> Go to Login
+                                </a>
+                            </div>
+                        <% } else { %>
+                            <form action="/register" method="POST">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-person"></i> Full Name
+                                    </label>
+                                    <input type="text" class="form-control" name="name" required autofocus>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-envelope"></i> Email Address
+                                    </label>
+                                    <input type="email" class="form-control" name="email" required>
+                                    <small class="text-muted">This will be your login email</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="bi bi-key"></i> Password
+                                    </label>
+                                    <input type="password" class="form-control" name="password" id="password" required>
+                                    <div id="strengthBar" class="password-strength"></div>
+                                    <small class="text-muted">Minimum 6 characters</small>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label">
+                                        <i class="bi bi-key-fill"></i> Confirm Password
+                                    </label>
+                                    <input type="password" class="form-control" name="confirmPassword" id="confirmPassword" required>
+                                    <div id="passwordMatch" class="small mt-1"></div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary btn-register w-100">
+                                    <i class="bi bi-person-plus"></i> Create Admin Account
+                                </button>
+                            </form>
+                            
+                            <hr class="my-4">
+                            
+                            <div class="text-center">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle"></i> This will create the first administrator account.<br>
+                                    Only one admin account can be created.
+                                </small>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const passwordInput = document.getElementById('password');
+        const confirmInput = document.getElementById('confirmPassword');
+        const strengthBar = document.getElementById('strengthBar');
+        const passwordMatch = document.getElementById('passwordMatch');
+        
+        function checkPasswordStrength() {
+            const password = passwordInput.value;
+            let strength = 0;
+            
+            if (password.length >= 6) strength++;
+            if (password.match(/[a-z]+/)) strength++;
+            if (password.match(/[A-Z]+/)) strength++;
+            if (password.match(/[0-9]+/)) strength++;
+            if (password.match(/[$@#&!]+/)) strength++;
+            
+            strengthBar.className = 'password-strength';
+            
+            if (password.length === 0) {
+                strengthBar.style.width = '0';
+            } else if (strength <= 2) {
+                strengthBar.classList.add('strength-weak');
+            } else if (strength === 3 || strength === 4) {
+                strengthBar.classList.add('strength-medium');
+            } else {
+                strengthBar.classList.add('strength-strong');
+            }
+        }
+        
+        function checkPasswordMatch() {
+            if (confirmInput.value.length > 0) {
+                if (passwordInput.value === confirmInput.value) {
+                    passwordMatch.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Passwords match';
+                    passwordMatch.style.color = '#10b981';
+                } else {
+                    passwordMatch.innerHTML = '<i class="bi bi-x-circle-fill text-danger"></i> Passwords do not match';
+                    passwordMatch.style.color = '#ef4444';
+                }
+            } else {
+                passwordMatch.innerHTML = '';
+            }
+        }
+        
+        passwordInput.addEventListener('input', checkPasswordStrength);
+        confirmInput.addEventListener('input', checkPasswordMatch);
+        passwordInput.addEventListener('input', checkPasswordMatch);
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

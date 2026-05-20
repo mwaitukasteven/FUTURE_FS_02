@@ -1,0 +1,190 @@
+<%
+    title = 'Lead Details - Mini CRM';
+    include('partials/header');
+%>
+
+<div class="main-content">
+    <div class="container-fluid p-4">
+        <!-- Top Navigation -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <a href="/dashboard/leads" class="btn btn-outline-secondary mb-3">
+                    <i class="bi bi-arrow-left"></i> Back to Leads
+                </a>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted"><%= user.email %></span>
+                <a href="/logout" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Left Column - Lead Information -->
+            <div class="col-md-7">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h4 class="mb-0"><%= lead.name %></h4>
+                                <span class="badge-status <%= 
+                                    lead.status === 'new' ? 'badge-new' : 
+                                    lead.status === 'contacted' ? 'badge-contacted' :
+                                    lead.status === 'converted' ? 'badge-converted' : 'badge-lost'
+                                %> mt-2 d-inline-block"><%= lead.status %></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <h6><i class="bi bi-info-circle"></i> Contact Information</h6>
+                        <p>
+                            <i class="bi bi-envelope"></i> <strong>Email:</strong> <%= lead.email %><br>
+                            <i class="bi bi-telephone"></i> <strong>Phone:</strong> <%= lead.phone %><br>
+                            <i class="bi bi-calendar"></i> <strong>Created:</strong> <%= lead.createdAt.toLocaleDateString() %> at <%= lead.createdAt.toLocaleTimeString() %>
+                        </p>
+                        
+                        <hr>
+                        
+                        <h6><i class="bi bi-chat-text"></i> Original Message</h6>
+                        <div class="alert alert-light bg-light p-3 rounded">
+                            <%= lead.message.replace(/\n/g, '<br>') %>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h6><i class="bi bi-clock-history"></i> Activity Timeline</h6>
+                        <div id="notesList">
+                            <% if (lead.notes && lead.notes.length > 0) { %>
+                                <% lead.notes.forEach(note => { %>
+                                    <div class="border-start border-primary ps-3 mb-3">
+                                        <small class="text-muted">
+                                            <i class="bi bi-person-circle"></i> <%= note.addedBy || 'System' %> 
+                                            | <%= new Date(note.createdAt).toLocaleString() %>
+                                        </small>
+                                        <p class="mb-0 mt-1"><%= note.note %></p>
+                                    </div>
+                                <% }) %>
+                            <% } else { %>
+                                <p class="text-muted">No notes yet. Add a follow-up note above.</p>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column - Actions -->
+            <div class="col-md-5">
+                <!-- Update Status Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-tags"></i> Update Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <label class="form-label">Current Status: <strong><%= lead.status %></strong></label>
+                        <select id="statusSelect" class="form-select mb-3">
+                            <option value="new" <%= lead.status === 'new' ? 'selected' : '' %>>🟡 New</option>
+                            <option value="contacted" <%= lead.status === 'contacted' ? 'selected' : '' %>>🔵 Contacted</option>
+                            <option value="converted" <%= lead.status === 'converted' ? 'selected' : '' %>>🟢 Converted</option>
+                            <option value="lost" <%= lead.status === 'lost' ? 'selected' : '' %>>🔴 Lost</option>
+                        </select>
+                        <button onclick="updateStatus()" class="btn btn-primary w-100">
+                            <i class="bi bi-check-circle"></i> Update Status
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Add Note Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Add Follow-up Note</h5>
+                    </div>
+                    <div class="card-body">
+                        <textarea id="noteText" class="form-control mb-3" rows="4" placeholder="Write your note here..."></textarea>
+                        <button onclick="addNote()" class="btn btn-success w-100">
+                            <i class="bi bi-plus-circle"></i> Add Note
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Lead Details Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-info-square"></i> Lead Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <small class="text-muted">Lead ID:</small>
+                        <p class="small"><code><%= lead._id %></code></p>
+                        
+                        <small class="text-muted">Last Updated:</small>
+                        <p><%= new Date(lead.updatedAt).toLocaleString() %></p>
+                        
+                        <% if (lead.convertedAt) { %>
+                            <small class="text-muted">Converted Date:</small>
+                            <p><%= new Date(lead.convertedAt).toLocaleDateString() %></p>
+                        <% } %>
+                        
+                        <small class="text-muted">Source:</small>
+                        <p><%= lead.source %></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const leadId = '<%= lead._id %>';
+    
+    async function updateStatus() {
+        const status = document.getElementById('statusSelect').value;
+        
+        try {
+            const response = await fetch(`/api/leads/${leadId}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status })
+            });
+            
+            if (response.ok) {
+                location.reload();
+            } else {
+                const error = await response.json();
+                alert('Error updating status: ' + (error.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error updating status');
+        }
+    }
+    
+    async function addNote() {
+        const note = document.getElementById('noteText').value;
+        if (!note.trim()) {
+            alert('Please enter a note before adding');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/leads/${leadId}/notes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ note })
+            });
+            
+            if (response.ok) {
+                location.reload();
+            } else {
+                const error = await response.json();
+                alert('Error adding note: ' + (error.error || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Error adding note');
+        }
+    }
+</script>
+
+<%
+    include('partials/footer');
+%>
