@@ -17,6 +17,9 @@
             --warning: #f59e0b;
             --danger: #ef4444;
             --info: #3b82f6;
+            --dark: #1f2937;
+            --gray: #6b7280;
+            --light-gray: #f3f4f6;
         }
         
         * {
@@ -96,6 +99,15 @@
             padding: 20px;
         }
         
+        /* Top Navigation */
+        .top-nav {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
         /* Stats Cards */
         .stat-card {
             background: white;
@@ -153,15 +165,6 @@
             border-bottom: 1px solid #e5e7eb;
             padding: 15px 20px;
             border-radius: 15px 15px 0 0 !important;
-        }
-        
-        /* Top Nav */
-        .top-nav {
-            background: white;
-            border-radius: 15px;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
         /* Responsive */
@@ -314,49 +317,44 @@
 
 <script>
     function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
+        var sidebar = document.getElementById('sidebar');
         sidebar.classList.toggle('show');
     }
     
     async function loadRecentLeads() {
         try {
-            const response = await fetch('/api/leads');
-            const leads = await response.json();
-            const recentLeads = leads.slice(0, 5);
+            var response = await fetch('/api/leads');
+            var leads = await response.json();
+            var recentLeads = leads.slice(0, 5);
             
             if (recentLeads.length === 0) {
-                document.getElementById('recentLeads').innerHTML = `
-                    <div class="text-center py-5">
-                        <i class="bi bi-inbox fs-1 text-muted"></i>
-                        <p class="text-muted mt-2">No leads yet</p>
-                        <a href="/test-form" class="btn btn-sm btn-primary">Submit Test Lead</a>
-                    </div>
-                `;
+                document.getElementById('recentLeads').innerHTML = '<div class="text-center py-5"><i class="bi bi-inbox fs-1 text-muted"></i><p class="text-muted mt-2">No leads yet</p><a href="/test-form" class="btn btn-sm btn-primary">Submit Test Lead</a></div>';
                 return;
             }
             
-            let html = '<div class="table-responsive"><table class="table table-hover"><thead><tr>';
+            var html = '<div class="table-responsive"><table class="table table-hover"><thead><tr>';
             html += '<th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th>Date</th><th></th>';
             html += '</tr></thead><tbody>';
             
-            recentLeads.forEach(lead => {
-                let statusClass = 'badge-new';
+            for (var i = 0; i < recentLeads.length; i++) {
+                var lead = recentLeads[i];
+                var statusClass = 'badge-new';
                 if (lead.status === 'contacted') statusClass = 'badge-contacted';
                 if (lead.status === 'converted') statusClass = 'badge-converted';
                 if (lead.status === 'lost') statusClass = 'badge-lost';
                 
-                const date = new Date(lead.createdAt);
-                const formattedDate = date.toLocaleDateString();
+                var date = new Date(lead.createdAt);
+                var formattedDate = date.toLocaleDateString();
                 
-                html += `<tr onclick="window.location='/dashboard/lead/${lead._id}'">`;
-                html += `<td><strong>${escapeHtml(lead.name)}</strong></td>`;
-                html += `<td>${escapeHtml(lead.email)}</td>`;
-                html += `<td>${escapeHtml(lead.phone)}</td>`;
-                html += `<td><span class="badge-status ${statusClass}">${lead.status}</span></td>`;
-                html += `<td>${formattedDate}</td>`;
-                html += `<td><i class="bi bi-chevron-right"></i></td>`;
-                html += `</tr>`;
-            });
+                html += '<tr onclick="window.location=\'/dashboard/lead/' + lead._id + '\'">';
+                html += '<td><strong>' + escapeHtml(lead.name) + '</strong></td>';
+                html += '<td>' + escapeHtml(lead.email) + '</td>';
+                html += '<td>' + escapeHtml(lead.phone) + '</td>';
+                html += '<td><span class="badge-status ' + statusClass + '">' + lead.status + '</span></td>';
+                html += '<td>' + formattedDate + '</td>';
+                html += '<td><i class="bi bi-chevron-right"></i></td>';
+                html += '</tr>';
+            }
             
             html += '</tbody>}</div>';
             document.getElementById('recentLeads').innerHTML = html;
@@ -368,18 +366,18 @@
     
     function escapeHtml(text) {
         if (!text) return '';
-        const div = document.createElement('div');
+        var div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
     
     // Close sidebar when clicking outside on mobile
     document.addEventListener('click', function(event) {
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.querySelector('.menu-toggle');
+        var sidebar = document.getElementById('sidebar');
+        var toggleBtn = document.querySelector('.menu-toggle');
         
         if (window.innerWidth <= 768) {
-            if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+            if (sidebar && !sidebar.contains(event.target) && toggleBtn && !toggleBtn.contains(event.target)) {
                 sidebar.classList.remove('show');
             }
         }

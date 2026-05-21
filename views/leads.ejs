@@ -102,15 +102,6 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
-        .stat-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-            border: none;
-        }
-        
         .badge-status {
             padding: 5px 12px;
             border-radius: 20px;
@@ -295,22 +286,23 @@
 
 <script>
     function toggleSidebar() {
-        document.getElementById('sidebar').classList.toggle('show');
+        var sidebar = document.getElementById('sidebar');
+        sidebar.classList.toggle('show');
     }
     
     async function loadLeads() {
-        const search = document.getElementById('searchInput').value;
-        const status = document.getElementById('statusFilter').value;
+        var search = document.getElementById('searchInput').value;
+        var status = document.getElementById('statusFilter').value;
         
-        let url = '/api/leads';
-        const params = [];
-        if (status !== 'all') params.push(`status=${status}`);
-        if (search) params.push(`search=${encodeURIComponent(search)}`);
-        if (params.length) url += '?' + params.join('&');
+        var url = '/api/leads';
+        var params = [];
+        if (status !== 'all') params.push('status=' + status);
+        if (search) params.push('search=' + encodeURIComponent(search));
+        if (params.length) url = url + '?' + params.join('&');
         
         try {
-            const response = await fetch(url);
-            const leads = await response.json();
+            var response = await fetch(url);
+            var leads = await response.json();
             renderLeadsTable(leads);
         } catch (error) {
             document.getElementById('leadsTable').innerHTML = '<div class="alert alert-danger">Error loading leads</div>';
@@ -319,42 +311,35 @@
     
     function renderLeadsTable(leads) {
         if (leads.length === 0) {
-            document.getElementById('leadsTable').innerHTML = `
-                <div class="text-center py-5">
-                    <i class="bi bi-inbox fs-1 text-muted"></i>
-                    <p class="text-muted mt-2">No leads found</p>
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addLeadModal">
-                        Add your first lead
-                    </button>
-                </div>
-            `;
+            document.getElementById('leadsTable').innerHTML = '<div class="text-center py-5"><i class="bi bi-inbox fs-1 text-muted"></i><p class="text-muted mt-2">No leads found</p><button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addLeadModal">Add your first lead</button></div>';
             return;
         }
         
-        let html = '<div class="table-responsive"><table class="table table-hover"><thead><tr>';
+        var html = '<div class="table-responsive"><table class="table table-hover"><thead><tr>';
         html += '<th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th>Date</th><th>Actions</th>';
         html += '</tr></thead><tbody>';
         
-        leads.forEach(lead => {
-            let statusClass = 'badge-new';
+        for (var i = 0; i < leads.length; i++) {
+            var lead = leads[i];
+            var statusClass = 'badge-new';
             if (lead.status === 'contacted') statusClass = 'badge-contacted';
             if (lead.status === 'converted') statusClass = 'badge-converted';
             if (lead.status === 'lost') statusClass = 'badge-lost';
             
-            html += `<tr>`;
-            html += `<td><strong>${escapeHtml(lead.name)}</strong></td>`;
-            html += `<td>${escapeHtml(lead.email)}</td>`;
-            html += `<td>${escapeHtml(lead.phone)}</td>`;
-            html += `<td><span class="badge-status ${statusClass}">${lead.status}</span></td>`;
-            html += `<td>${new Date(lead.createdAt).toLocaleDateString()}</td>`;
-            html += `<td>
-                        <a href="/dashboard/lead/${lead._id}" class="btn btn-sm btn-info">View</a>
-                        <button onclick="deleteLead('${lead._id}')" class="btn btn-sm btn-danger">Delete</button>
-                       </td>`;
-            html += `</tr>`;
-        });
+            var date = new Date(lead.createdAt);
+            var formattedDate = date.toLocaleDateString();
+            
+            html += '<tr>';
+            html += '<td><strong>' + escapeHtml(lead.name) + '</strong></td>';
+            html += '<td>' + escapeHtml(lead.email) + '</td>';
+            html += '<td>' + escapeHtml(lead.phone) + '</td>';
+            html += '<td><span class="badge-status ' + statusClass + '">' + lead.status + '</span></td>';
+            html += '<td>' + formattedDate + '</td>';
+            html += '<td><a href="/dashboard/lead/' + lead._id + '" class="btn btn-sm btn-info">View</a> <button onclick="deleteLead(\'' + lead._id + '\')" class="btn btn-sm btn-danger">Delete</button></td>';
+            html += '</tr>';
+        }
         
-        html += '</tbody>}</div>';
+        html += '</tbody></table></div>';
         document.getElementById('leadsTable').innerHTML = html;
     }
     
@@ -362,7 +347,7 @@
         if (!confirm('Are you sure you want to delete this lead?')) return;
         
         try {
-            const response = await fetch(`/api/leads/${id}`, { method: 'DELETE' });
+            var response = await fetch('/api/leads/' + id, { method: 'DELETE' });
             if (response.ok) {
                 loadLeads();
             } else {
@@ -374,19 +359,23 @@
     }
     
     async function submitNewLead() {
-        const form = document.getElementById('addLeadForm');
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData);
+        var form = document.getElementById('addLeadForm');
+        var formData = new FormData(form);
+        var data = {};
+        formData.forEach(function(value, key) {
+            data[key] = value;
+        });
         
         try {
-            const response = await fetch('/api/leads', {
+            var response = await fetch('/api/leads', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
             
             if (response.ok) {
-                bootstrap.Modal.getInstance(document.getElementById('addLeadModal')).hide();
+                var modal = bootstrap.Modal.getInstance(document.getElementById('addLeadModal'));
+                modal.hide();
                 form.reset();
                 loadLeads();
             } else {
@@ -399,14 +388,14 @@
     
     function escapeHtml(text) {
         if (!text) return '';
-        const div = document.createElement('div');
+        var div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
     
     document.getElementById('searchInput').addEventListener('input', loadLeads);
     document.getElementById('statusFilter').addEventListener('change', loadLeads);
-    document.getElementById('resetFilters').addEventListener('click', () => {
+    document.getElementById('resetFilters').addEventListener('click', function() {
         document.getElementById('searchInput').value = '';
         document.getElementById('statusFilter').value = 'all';
         loadLeads();
